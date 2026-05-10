@@ -1,0 +1,71 @@
+// Prisma schema for Saffron & Sage catering platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Inquiry {
+  id         Int      @id @default(autoincrement())
+  name       String
+  email      String
+  phone      String
+  eventType  String
+  eventDate  String?
+  guestCount String?
+  message    String?
+  status     String   @default("pending")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  icon        String?
+  features    String
+  capacity    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GalleryImage {
+  id        Int      @id @default(autoincrement())
+  url       String
+  title     String?
+  category  String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Staff {
+  id          Int      @id @default(autoincrement())
+  name        String
+  email       String   @unique
+  phone       String
+  role        String
+  department  String?
+  salary      String?
+  joinDate    DateTime
+  address     String?
+  emergencyContact String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
