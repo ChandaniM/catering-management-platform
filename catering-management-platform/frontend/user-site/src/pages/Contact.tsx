@@ -1,10 +1,53 @@
-import { useState, FormEvent } from 'react'
+import { useState, useMemo, type FormEvent } from 'react'
 import axios from 'axios'
 import { MapPin, Phone, Mail, Clock, MessageCircle } from 'lucide-react'
+import { useSiteSettings } from '../contexts/SiteSettingsContext'
+import { parseJson } from '../lib/parseJson'
+import { API_URL } from '../apiConfig'
 
-const API_URL = 'http://localhost:4000/api'
+type ContactPageJson = {
+  hero?: {
+    eyebrow?: string
+    titleBefore?: string
+    titleEmphasis?: string
+    titleAfter?: string
+    description?: string
+  }
+  connect?: { title?: string; subtitle?: string }
+  form?: { title?: string; subtitle?: string }
+}
+
+const DEFAULT_PAGE: ContactPageJson = {
+  hero: {
+    eyebrow: 'Begin Your Journey',
+    titleBefore: "Let's Create ",
+    titleEmphasis: 'Magic',
+    titleAfter: ' Together',
+    description:
+      "Share your vision with us, and we'll craft an unforgettable culinary experience that exceeds every expectation",
+  },
+  connect: {
+    title: 'Connect With Us',
+    subtitle:
+      'Our dedicated team is ready to bring your vision to life. Reach out through any channel that suits you best.',
+  },
+  form: {
+    title: 'Share Your Vision',
+    subtitle: "Tell us about your event, and we'll design a bespoke experience",
+  },
+}
 
 export default function Contact() {
+  const { settings, loading } = useSiteSettings()
+  const page = useMemo(() => {
+    const raw = parseJson<Partial<ContactPageJson>>(settings.contact_page_json, {})
+    return {
+      hero: { ...DEFAULT_PAGE.hero, ...raw.hero },
+      connect: { ...DEFAULT_PAGE.connect, ...raw.connect },
+      form: { ...DEFAULT_PAGE.form, ...raw.form },
+    }
+  }, [settings.contact_page_json])
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,6 +58,12 @@ export default function Contact() {
     message: '',
   })
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+
+  const location = settings.contact_location || 'Sion, Mumbai, Maharashtra'
+  const phone = settings.contact_phone || '+91 99999 99999'
+  const email = settings.contact_email || 'catering.services@gmail.com'
+  const hours = settings.contact_hours || 'Available daily, 9:00 AM – 9:00 PM'
+  const wa = (settings.contact_whatsapp || '919999999999').replace(/\D/g, '')
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -32,7 +81,7 @@ export default function Contact() {
         guestCount: '',
         message: '',
       })
-      
+
       setTimeout(() => setStatus('idle'), 5000)
     } catch (error) {
       setStatus('error')
@@ -41,45 +90,48 @@ export default function Contact() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     }))
   }
 
+  if (loading && Object.keys(settings).length === 0) {
+    return (
+      <div style={{ minHeight: '50vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        Loading...
+      </div>
+    )
+  }
+
+  const h = page.hero || DEFAULT_PAGE.hero
+
   return (
     <>
-      {/* Hero */}
       <section className="contact-hero-luxury">
         <div className="hero-overlay-pattern"></div>
         <div className="container">
           <div className="hero-content-center">
             <div className="decorative-line-top"></div>
-            <p className="hero-eyebrow-luxury">Begin Your Journey</p>
+            <p className="hero-eyebrow-luxury">{h.eyebrow}</p>
             <h1 className="hero-title-luxury">
-              Let's Create <em>Magic</em> Together
+              {h.titleBefore}
+              <em>{h.titleEmphasis}</em>
+              {h.titleAfter}
             </h1>
-            <p className="hero-description-luxury">
-              Share your vision with us, and we'll craft an unforgettable culinary experience 
-              that exceeds every expectation
-            </p>
+            <p className="hero-description-luxury">{h.description}</p>
             <div className="decorative-line-bottom"></div>
           </div>
         </div>
       </section>
 
-      {/* Contact Content */}
       <section className="contact-section-luxury">
         <div className="container-luxury">
           <div className="contact-grid-luxury">
-            {/* Contact Info */}
             <div className="contact-info-luxury">
               <div className="info-card-header">
-                <h2>Connect With Us</h2>
-                <p className="info-subtitle">
-                  Our dedicated team is ready to bring your vision to life. Reach out through 
-                  any channel that suits you best.
-                </p>
+                <h2>{page.connect?.title}</h2>
+                <p className="info-subtitle">{page.connect?.subtitle}</p>
               </div>
 
               <div className="contact-methods">
@@ -91,7 +143,7 @@ export default function Contact() {
                   </div>
                   <div className="contact-details">
                     <h4>Our Location</h4>
-                    <p className="detail-primary">Sion, Mumbai, Maharashtra</p>
+                    <p className="detail-primary">{location}</p>
                     <p className="detail-secondary">Serving across India with excellence</p>
                   </div>
                 </div>
@@ -104,8 +156,8 @@ export default function Contact() {
                   </div>
                   <div className="contact-details">
                     <h4>Phone & WhatsApp</h4>
-                    <p className="detail-primary">+91 99999 99999</p>
-                    <p className="detail-secondary">Available daily, 9:00 AM – 9:00 PM</p>
+                    <p className="detail-primary">{phone}</p>
+                    <p className="detail-secondary">{hours}</p>
                   </div>
                 </div>
 
@@ -117,7 +169,7 @@ export default function Contact() {
                   </div>
                   <div className="contact-details">
                     <h4>Email Address</h4>
-                    <p className="detail-primary">catering.services@gmail.com</p>
+                    <p className="detail-primary">{email}</p>
                     <p className="detail-secondary">We respond within 48 hours</p>
                   </div>
                 </div>
@@ -136,9 +188,9 @@ export default function Contact() {
                 </div>
               </div>
 
-              <a 
-                href="https://wa.me/919999999999" 
-                target="_blank" 
+              <a
+                href={`https://wa.me/${wa}`}
+                target="_blank"
                 rel="noopener noreferrer"
                 className="whatsapp-cta-luxury"
               >
@@ -147,13 +199,12 @@ export default function Contact() {
               </a>
             </div>
 
-            {/* Contact Form */}
             <div className="contact-form-luxury-wrapper">
               <div className="form-header-luxury">
-                <h2>Share Your Vision</h2>
-                <p>Tell us about your event, and we'll design a bespoke experience</p>
+                <h2>{page.form?.title}</h2>
+                <p>{page.form?.subtitle}</p>
               </div>
-              
+
               <form onSubmit={handleSubmit} className="contact-form-luxury">
                 <div className="form-group-luxury">
                   <label htmlFor="name">Full Name</label>
@@ -258,11 +309,7 @@ export default function Contact() {
                   />
                 </div>
 
-                <button 
-                  type="submit" 
-                  className="btn-submit-luxury"
-                  disabled={status === 'loading'}
-                >
+                <button type="submit" className="btn-submit-luxury" disabled={status === 'loading'}>
                   {status === 'loading' ? (
                     <>
                       <span className="spinner"></span>
@@ -278,7 +325,10 @@ export default function Contact() {
                     <div className="message-icon">✓</div>
                     <div>
                       <h4>Thank You!</h4>
-                      <p>We've received your inquiry and will respond within 24 hours with a personalized consultation.</p>
+                      <p>
+                        We&apos;ve received your inquiry and will respond within 24 hours with a personalized
+                        consultation.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -288,7 +338,10 @@ export default function Contact() {
                     <div className="message-icon">✗</div>
                     <div>
                       <h4>Submission Failed</h4>
-                      <p>We couldn't process your request. Please try again or contact us directly via phone or email.</p>
+                      <p>
+                        We couldn&apos;t process your request. Please try again or contact us directly via phone or
+                        email.
+                      </p>
                     </div>
                   </div>
                 )}

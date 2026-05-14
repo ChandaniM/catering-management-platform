@@ -1,71 +1,120 @@
+import { useState, useEffect, useCallback, type ComponentType } from 'react'
 import { Link } from 'react-router-dom'
 import { Utensils, Building2, Cake, TreePine, Film, Anchor, ArrowRight } from 'lucide-react'
+import axios from 'axios'
+import { useSiteSettings } from '../contexts/SiteSettingsContext'
+import { parseJson } from '../lib/parseJson'
+import { useRefetchOnFocus } from '../lib/useRefetchOnFocus'
+import { API_URL } from '../apiConfig'
 
-const services = [
-  {
-    title: 'Wedding Catering',
-    icon: Utensils,
-    description: 'Your wedding deserves a feast that matches the grandeur of the occasion. From traditional thalis to pan-Indian buffets, live chaat and dessert stations.',
-    features: ['Multi-cuisine live counters', 'Custom bridal menus', 'Jain-friendly options', 'Royal table setup', 'Trained banquet staff', 'Capacity: 50-5000+ guests'],
-    capacity: '50 - 5000+ guests',
-  },
-  {
-    title: 'Corporate Catering',
-    icon: Building2,
-    description: 'From boardroom lunches and team meetings to product launches and annual gala dinners - we deliver corporate catering that reflects your brand.',
-    features: ['Working lunch setups', 'Gala dinner service', 'Health-conscious menus', 'Branded presentations', 'Punctual delivery', 'Capacity: 25-2000+ guests'],
-    capacity: '25 - 2000+ guests',
-  },
-  {
-    title: 'Birthday Parties',
-    icon: Cake,
-    description: 'From intimate soirees to lavish milestone celebrations - every detail food-forward with customized themes and menus.',
-    features: ['Themed party menus', 'Birthday cake specials', 'Interactive food stations', 'Kids-friendly options', 'Dessert bars', 'Capacity: 25-500 guests'],
-    capacity: '25 - 500 guests',
-  },
-  {
-    title: 'Outdoor Catering',
-    icon: TreePine,
-    description: 'Curated evening spreads with premium canapes, mocktails and live stations perfect for garden parties and outdoor events.',
-    features: ['Mobile kitchen setup', 'Weather-proof arrangements', 'BBQ and grill stations', 'Scenic presentation', 'Open-air dining', 'Capacity: 50-1000+ guests'],
-    capacity: '50 - 1000+ guests',
-  },
-  {
-    title: 'Film and Media Catering',
-    icon: Film,
-    description: 'Keep your cast and crew energized through long shooting days. Hygienic, delicious meal services for productions across India.',
-    features: ['Bulk meal production', 'Multiple shift timings', 'On-set setup and service', 'Special dietary options', 'Hygienically packed', 'Capacity: 50-500+ crew'],
-    capacity: '50 - 500+ crew',
-  },
-  {
-    title: 'Yacht Catering',
-    icon: Anchor,
-    description: 'Mumbai harbour as the backdrop. Curated spreads with elegant canapes, mezze stations, and premium live cooking for floating soirees.',
-    features: ['Canape and mezze spreads', 'Live cooking stations', 'Maritime-safe packaging', 'White-glove service', 'Mocktail pairings', 'Capacity: 25-150 guests'],
-    capacity: '25 - 150 guests',
-  },
-]
+interface Service {
+  id: number
+  title: string
+  description: string
+  icon?: string
+  features: string
+  capacity?: string
+  active: boolean
+}
+
+const iconMap: Record<string, ComponentType<{ size?: number; strokeWidth?: number }>> = {
+  '💒': Utensils,
+  '🏢': Building2,
+  '🎂': Cake,
+  '🌳': TreePine,
+  '🎬': Film,
+  '⚓': Anchor,
+}
+
+type ServicesHero = {
+  eyebrow?: string
+  titleBefore?: string
+  titleEmphasis?: string
+  sub?: string
+}
+
+type ServicesCta = {
+  titleBefore?: string
+  titleEmphasis?: string
+  description?: string
+  buttonText?: string
+}
+
+const DEFAULT_HERO: ServicesHero = {
+  eyebrow: 'Our Services',
+  titleBefore: 'Curated Catering for ',
+  titleEmphasis: 'Every Occasion',
+  sub: 'From intimate gatherings to grand celebrations, we offer comprehensive catering solutions tailored to make every occasion extraordinary.',
+}
+
+const DEFAULT_CTA: ServicesCta = {
+  titleBefore: "Don't See Your Event Type? ",
+  titleEmphasis: "Let's Talk.",
+  description:
+    "We cater every kind of occasion — just reach out and we'll customise a package for you.",
+  buttonText: 'Get a Custom Quote',
+}
 
 export default function Services() {
+  const { settings, loading: settingsLoading } = useSiteSettings()
+  const [services, setServices] = useState<Service[]>([])
+  const [servicesLoading, setServicesLoading] = useState(true)
+
+  const fetchServices = useCallback(async () => {
+    try {
+      const response = await axios.get<Service[]>(`${API_URL}/services`, {
+        params: { _t: Date.now() },
+        headers: { 'Cache-Control': 'no-cache', Pragma: 'no-cache' },
+      })
+      setServices(response.data.filter((s) => s.active))
+    } catch (error) {
+      console.error('Failed to fetch services:', error)
+    } finally {
+      setServicesLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    void fetchServices()
+  }, [fetchServices])
+
+  useRefetchOnFocus(fetchServices, { pollMs: 12_000 })
+
+  const hero = {
+    ...DEFAULT_HERO,
+    ...parseJson<Partial<ServicesHero>>(settings.services_hero_json, {}),
+  }
+  const heroSub = hero.sub || settings.services_subtitle || DEFAULT_HERO.sub
+
+  const cta = parseJson<ServicesCta>(settings.services_cta_json, DEFAULT_CTA)
+
+  if ((settingsLoading && Object.keys(settings).length === 0) || servicesLoading) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        Loading...
+      </div>
+    )
+  }
+
   return (
     <>
-      {/* Hero */}
       <section className="page-hero">
-        <p className="hero-eyebrow">Our Services</p>
-        <h1 className="hero-title">Curated Catering for <em>Every Occasion</em></h1>
-        <p className="hero-description">
-          From intimate gatherings to grand celebrations, we offer comprehensive catering solutions 
-          tailored to make every occasion extraordinary.
-        </p>
+        <p className="hero-eyebrow">{hero.eyebrow}</p>
+        <h1 className="hero-title">
+          {hero.titleBefore}
+          <em>{hero.titleEmphasis}</em>
+        </h1>
+        <p className="hero-description">{heroSub}</p>
       </section>
 
-      {/* Services Grid */}
       <section className="services-detail">
         <div className="section-inner">
-          {services.map((service, index) => {
-            const IconComponent = service.icon
+          {services.map((service) => {
+            const IconComponent = service.icon ? iconMap[service.icon] || Utensils : Utensils
+            const featuresList = service.features.split('\n').filter((f) => f.trim())
+
             return (
-              <div key={index} className="service-detail-card">
+              <div key={service.id} className="service-detail-card">
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '2rem' }}>
                   <div className="service-icon" style={{ fontSize: '3rem' }}>
                     <IconComponent size={48} strokeWidth={1.5} />
@@ -76,9 +125,10 @@ export default function Services() {
                     <div className="service-features">
                       <h4>Features & Specialties:</h4>
                       <ul>
-                        {service.features.map((feature, i) => (
+                        {featuresList.map((feature, i) => (
                           <li key={i}>{feature}</li>
                         ))}
+                        {service.capacity && <li>Capacity: {service.capacity}</li>}
                       </ul>
                     </div>
                     <Link to="/contact" className="btn-primary" style={{ marginTop: '1rem' }}>
@@ -92,13 +142,15 @@ export default function Services() {
         </div>
       </section>
 
-      {/* CTA */}
       <section className="cta">
         <div className="section-inner">
-          <h2>Don't See Your Event Type? <em>Let's Talk.</em></h2>
-          <p>We cater every kind of occasion — just reach out and we'll customise a package for you.</p>
+          <h2>
+            {cta.titleBefore || DEFAULT_CTA.titleBefore}
+            <em>{cta.titleEmphasis || DEFAULT_CTA.titleEmphasis}</em>
+          </h2>
+          <p>{cta.description || DEFAULT_CTA.description}</p>
           <Link to="/contact" className="btn-gold">
-            Get a Custom Quote <ArrowRight size={16} />
+            {cta.buttonText || DEFAULT_CTA.buttonText} <ArrowRight size={16} />
           </Link>
         </div>
       </section>

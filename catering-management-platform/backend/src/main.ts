@@ -5,9 +5,10 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for frontend apps
+  // If CORS_ORIGINS is unset, allow any origin (needed for 127.0.0.1, LAN IPs, and Vite port changes).
+  const corsList = process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean);
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'], // user-site + admin
+    origin: corsList?.length ? corsList : true,
     credentials: true,
   });
 

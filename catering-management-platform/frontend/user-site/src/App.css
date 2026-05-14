@@ -153,7 +153,7 @@ body {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   transition: color 0.2s;
-  padding: 8px 0;
+  padding: 8px;
 }
 
 .nav-links a:hover,
@@ -222,7 +222,7 @@ body {
   margin: 0;
   padding: 0 4%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 3fr 1fr;
   gap: 5rem;
   align-items: center;
 }
@@ -324,6 +324,58 @@ body {
   color: var(--color-gold);
 }
 
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.hero-stats-right {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: rgba(196, 164, 108, 0.1);
+  border-radius: 0;
+  overflow: hidden;
+  align-self: center;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-stat-card {
+  background: rgba(45, 36, 56, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 3rem 5rem;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(196, 164, 108, 0.15);
+}
+
+.hero-stat-card:hover {
+  background: rgba(45, 36, 56, 0.8);
+  border-color: rgba(196, 164, 108, 0.3);
+  transform: translateX(-5px);
+}
+
+.hero-stat-num {
+  font-family: var(--font-heading);
+  font-size: 3.5rem;
+  font-weight: 300;
+  color: var(--color-gold);
+  line-height: 1;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.02em;
+}
+
+.hero-stat-label {
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1.4;
+}
+
+/* Legacy stats for compatibility */
 .hero-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -338,22 +390,6 @@ body {
   background: rgba(255, 255, 255, 0.05);
   padding: 1.25rem;
   text-align: center;
-}
-
-.hero-stat-num {
-  font-family: var(--font-heading);
-  font-size: 2rem;
-  font-weight: 600;
-  color: var(--color-gold);
-}
-
-.hero-stat-label {
-  font-size: 0.65rem;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 0.25rem;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════ */
@@ -1683,7 +1719,8 @@ section {
   font-size: clamp(0.9rem, 2vw, 1rem);
   color: rgba(255, 255, 255, 0.85);
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0;
+  margin-bottom: 8px;
   line-height: 1.6;
 }
 
@@ -2610,6 +2647,7 @@ section {
   padding: 10rem 0 6rem;
   text-align: center;
   margin-top: 70px;
+  flex-direction: column;
   width: 100vw;
   margin-left: calc(-50vw + 50%);
   margin-right: calc(-50vw + 50%);
@@ -3047,6 +3085,17 @@ section {
   .hero-inner,
   .contact-grid {
     grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .hero-stats-right {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+
+  .hero-stat-card {
+    padding: 2rem 3rem;
   }
 
   .footer-content {
@@ -3063,8 +3112,18 @@ section {
     display: none;
   }
 
-  .hero-stats {
+  .hero-stats,
+  .hero-stats-right {
     grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .hero-stat-card {
+    padding: 1.5rem 2rem;
+  }
+
+  .hero-stat-num {
+    font-size: 2.5rem;
   }
 
   .stat-grid,

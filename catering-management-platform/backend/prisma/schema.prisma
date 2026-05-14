@@ -69,3 +69,63 @@ model Staff {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model Content {
+  id          Int      @id @default(autoincrement())
+  pageName    String   @unique
+  section     String
+  title       String?
+  content     String
+  images      String?
+  order       Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Testimonial {
+  id          Int      @id @default(autoincrement())
+  name        String
+  event       String?
+  content     String
+  rating      Int      @default(5)
+  image       String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model WebsiteSettings {
+  id          Int      @id @default(autoincrement())
+  key         String   @unique
+  value       String
+  category    String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Page {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  title       String
+  slug        String   @unique
+  description String?
+  isEnabled   Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PageSection {
+  id          Int      @id @default(autoincrement())
+  pageSlug    String
+  sectionType String
+  title       String?
+  content     String
+  images      String?
+  order       Int      @default(0)
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
